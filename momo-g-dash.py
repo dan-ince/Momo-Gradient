@@ -77,7 +77,7 @@ def main():
         latest_close = ticker_data['close'].iloc[-1]
         pos = positions.iloc[-1]
         st.write(f"Position: {pos:.3}")
-        st.write(f"Synced: {1.07 - pos:.3}")
+        st.write(f"Synced: {1.09 - pos:.3}")
 
         # Plot the price chart, Min-Max scaled EMA gradient, equity curve, and drawdown
         st.subheader(f'{symbol} Price Chart')

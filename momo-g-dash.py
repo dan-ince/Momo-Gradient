@@ -51,14 +51,14 @@ def main():
     symbol = 'BTC/USDT'
     timeframe = '1d'
     limit = 1000  # Number of data points to fetch
-    leverage = 1.5  # Change leverage here
+    leverage = 1  # Change leverage here
     min_max_lookback = 252  # Fixed lookback window for min-max scaling
 
     try:
         ticker_data = get_ccxt_data(exchange, symbol, timeframe, limit)
 
         # Calculate the 10-day EMA gradient
-        ema_gradient = calculate_ema_gradient(ticker_data, 50)
+        ema_gradient = calculate_ema_gradient(ticker_data, 10)
 
         # Min-max scale the entire EMA gradient time series with a fixed lookback window
         ema_gradient_scaled = min_max_scale(pd.Series(ema_gradient, index=ticker_data.index), window=min_max_lookback)

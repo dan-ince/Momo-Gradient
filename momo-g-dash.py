@@ -51,7 +51,7 @@ def main():
     tab1, tab2, tab3, tab4 = st.tabs(["Price", "Feature", "Performance", "Drawdown"])
 
     # Fetch daily data for the last 365 days from a cryptocurrency exchange using ccxt
-    exchange = 'bybit'  # Use any exchange available in ccxt
+    exchange = 'okex'  # Use any exchange available in ccxt
     symbol = f'{ticker}/USDT'
     timeframe = '1d'
     limit = 1000  # Number of data points to fetch

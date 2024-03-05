@@ -110,7 +110,7 @@ def main():
         with tab3:
             # Performance including the asset's buy and hold performance
             normal_returns = calculate_normal_returns(ticker_data)
-            performance = pd.DataFrame({'Strategy': equity_curve, 'Asset': normal_returns})
+            performance = pd.DataFrame({'Strategy': equity_curve, 'Buy and hold': normal_returns})
             st.subheader('Performance')
             st.line_chart(performance, use_container_width=True)
             st.write(f"Sharpe Ratio: {sharpe_ratio:.3f}")
@@ -120,7 +120,7 @@ def main():
             st.subheader('Drawdown')
             strategy_drawdown = calculate_drawdown(equity_curve)
             asset_drawdown = calculate_drawdown(normal_returns)
-            drawdown = pd.DataFrame({'Strategy': strategy_drawdown, 'Asset': asset_drawdown})
+            drawdown = pd.DataFrame({'Strategy': strategy_drawdown, 'Buy and hold': asset_drawdown})
             st.line_chart(drawdown, use_container_width=True)
 
     except Exception as e:

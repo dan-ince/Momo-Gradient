@@ -61,8 +61,8 @@ def main():
     ticker = st.text_input('Ticker', 'BTC')
     tab1, tab2, tab3, tab4 = st.tabs(["Price", "Feature", "Performance", "Drawdown"])
 
-    # Fetch data from Woo due to Binance location restrictions
-    exchange = 'woo'  
+    # Fetch data from Okex due to Binance location restrictions
+    exchange = 'okx'  
     symbol = f'{ticker}/USDT'
     timeframe = '1d'
     limit = 1000  # Number of data points to fetch

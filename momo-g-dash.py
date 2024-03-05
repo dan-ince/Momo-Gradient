@@ -47,7 +47,7 @@ def calculate_drawdown(equity_curve):
 
 def calculate_normal_returns(data):
     returns = data['close'].pct_change().fillna(0)
-    cumulative_returns = (1 + returns).cumprod() * 100
+    normal_returns = (1 + returns).cumprod() * 100
     return normal_returns
 
 def calculate_sharpe_ratio(equity_curve, daily_risk_free_rate):
@@ -56,14 +56,11 @@ def calculate_sharpe_ratio(equity_curve, daily_risk_free_rate):
     return sharpe_ratio
 
 def main():
-    st.title('Feature-Based Momentum Dashboard')
     #Set title, ticker text input and tabs
-    st.title('Gradient Momentum Dashboard')
+    st.title('Feature-Based Momentum Dashboard')
     ticker = st.text_input('Ticker', 'BTC')
     tab1, tab2, tab3, tab4 = st.tabs(["Price", "Feature", "Performance", "Drawdown"])
 
-    # Fetch daily data for the last 365 days from a cryptocurrency exchange using ccxt
-    exchange = 'bybit'  # Use any exchange available in ccxt
     # Fetch data from Okex due to Binance location restrictions
     exchange = 'okx'  
     symbol = f'{ticker}/USDT'
@@ -101,8 +98,6 @@ def main():
 
         # Organize charts via tabs to improve readability
         with tab1:
-            # Plot the price chart and EMA on the left side
-            st.subheader('Price Chart')
             # Price
             st.subheader(f'{symbol} Price Chart')
             ema = calculate_ema(ticker_data, ema_length)
@@ -110,21 +105,17 @@ def main():
             st.line_chart(chart_data, use_container_width=True)
 
         with tab2:
-            # Plot the Min-Max scaled EMA gradient, equity curve, and drawdown on the right side
-            st.subheader('Feature Strengths')
             # Feature strength
             st.subheader(f'Feature Strength')
             st.line_chart(ema_gradient_scaled, use_container_width=True)
             
         with tab3:
-            st.subheader('Equity Curve')
-            st.line_chart(equity_curve, use_container_width=True)
-            st.write(f"Sharpe Ratio: {sharpe_ratio:.3f}")
             # Performance including the asset's buy and hold performance
             normal_returns = calculate_normal_returns(ticker_data)
             performance = pd.DataFrame({'Strategy': equity_curve, 'Asset': normal_returns})
             st.subheader('Performance')
             st.line_chart(performance, use_container_width=True)
+            st.write(f"Sharpe Ratio: {sharpe_ratio:.3f}")
             
         with tab4:   
             #Drawdown

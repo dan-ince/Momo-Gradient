@@ -43,7 +43,12 @@ def calculate_drawdown(equity_curve):
     # Calculate drawdown from equity curve
     running_max = np.maximum.accumulate(equity_curve)
     drawdown = (equity_curve - running_max) / running_max
-    return drawdown * 100  
+    return drawdown * 100
+
+def calculate_normal_returns(data):
+    returns = data['close'].pct_change().fillna(0)
+    cumulative_returns = (1 + returns).cumprod() * 100
+    return normal_returns
 
 def main():
     #Set title, ticker text input and tabs
@@ -97,9 +102,11 @@ def main():
             st.line_chart(ema_gradient_scaled, use_container_width=True)
             
         with tab3:
-            # Equity
-            st.subheader('Equity Curve')
-            st.line_chart(equity_curve, use_container_width=True)
+            # Performance including the asset's buy and hold performance
+            normal_returns = calculate_normal_returns(ticker_data)
+            performance = pd.DataFrame({'Strategy': equity_curve, 'Asset': normal_returns})
+            st.subheader('Performance')
+            st.line_chart(performance, use_container_width=True)
             
         with tab4:   
             #Drawdown

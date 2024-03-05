@@ -65,7 +65,7 @@ def main():
     exchange = 'okx'  
     symbol = f'{ticker}/USDT'
     timeframe = '1d'
-    limit = 800  # Number of days to fetch
+    limit = 1000  # Number of days to fetch
     leverage = 1  # Change leverage here
     min_max_lookback = 252  # Fixed lookback window for min-max scaling
     daily_risk_free_rate = 0.0001  # Example daily risk-free rate
@@ -86,7 +86,7 @@ def main():
 
         # Print the most recent position size for following-along
         pos = positions.iloc[-1]
-        st.write(f"Position: {pos:.3}")
+        st.write(f"Current position: {pos:.3}")
 
         # Calculate equity curve
         equity_curve = calculate_equity(ticker_data, positions)

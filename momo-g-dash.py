@@ -28,12 +28,14 @@ def min_max_scale(series, window):
 
 def simulate_strategy(data, ema_gradient_scaled, leverage):
     # Use the min-max scaled EMA gradient as the position size
-    positions = ema_gradient_scaled.shift(1) * leverage
+    positions = ema_gradient_scaled * leverage
+    pos_change = np.diff(positions)
+    pos_change_sum = np.cumsum(pos_change)
     return pd.Series(positions, index=data.index)
 
 def calculate_equity(data, positions):
     # Assuming we start with 100% of equity and trade with positions
-    returns = data['close'].pct_change() * positions
+    returns = data['close'].pct_change() * positions.shift(1)
     equity_curve = (1 + returns.fillna(0)).cumprod() * 100  # Starting with 100% equity
     return equity_curve
 
@@ -45,10 +47,12 @@ def calculate_drawdown(equity_curve):
 
 def main():
     st.title('Gradient Momentum Dashboard')
+    ticker = st.text_input('Ticker', 'BTC')
+    tab1, tab2, tab3, tab4 = st.tabs(["Price", "Feature", "Performance", "Drawdown"])
 
     # Fetch daily data for the last 365 days from a cryptocurrency exchange using ccxt
     exchange = 'binance'  # Use any exchange available in ccxt
-    symbol = 'BTC/USDT'
+    symbol = f'{ticker}/USDT'
     timeframe = '1d'
     limit = 1000  # Number of data points to fetch
     leverage = 1  # Change leverage here
@@ -57,8 +61,10 @@ def main():
     try:
         ticker_data = get_ccxt_data(exchange, symbol, timeframe, limit)
 
-        # Calculate the 10-day EMA gradient
-        ema_gradient = calculate_ema_gradient(ticker_data, 10)
+        ema_length = st.slider('EMA Length', 1, 200, 50)
+        ema_gradient = calculate_ema_gradient(ticker_data, ema_length)
+
+        st.divider()
 
         # Min-max scale the entire EMA gradient time series with a fixed lookback window
         ema_gradient_scaled = min_max_scale(pd.Series(ema_gradient, index=ticker_data.index), window=min_max_lookback)
@@ -66,31 +72,36 @@ def main():
         # Simulate the trading strategy based on the min-maxed EMA gradient
         positions = simulate_strategy(ticker_data, ema_gradient_scaled, leverage)
 
+        # Print the most recent close price, its corresponding min-max scale score, and the date
+        pos = positions.iloc[-1]
+        st.write(f"Position: {pos:.3}")
+
         # Calculate equity curve
         equity_curve = calculate_equity(ticker_data, positions)
 
         # Calculate drawdown
         drawdown = calculate_drawdown(equity_curve)
 
-        # Print the most recent close price, its corresponding min-max scale score, and the date
-        latest_date = ticker_data.index[-1].strftime('%Y-%m-%d')
-        latest_close = ticker_data['close'].iloc[-1]
-        pos = positions.iloc[-1]
-        st.write(f"Position: {pos:.3}")
-        st.write(f"Synced: {1.09 - pos:.3}")
+        # Organize charts side by side with wider columns and padding
+        with tab1:
+            # Plot the price chart and EMA on the left side
+            st.subheader(f'{symbol} Price Chart')
+            ema = calculate_ema(ticker_data, ema_length)
+            chart_data = pd.DataFrame({'Price': ticker_data['close'], 'EMA': ema})
+            st.line_chart(chart_data, use_container_width=True)
 
-        # Plot the price chart, Min-Max scaled EMA gradient, equity curve, and drawdown
-        st.subheader(f'{symbol} Price Chart')
-        st.line_chart(ticker_data['close'])
-        
-        st.subheader(f'Min-Max Scaled EMA Gradient for {symbol}')
-        st.line_chart(ema_gradient_scaled)
-        
-        st.subheader('Equity Curve')
-        st.line_chart(equity_curve)
-        
-        st.subheader('Drawdown')
-        st.line_chart(drawdown)
+        with tab2:
+            # Plot the Min-Max scaled EMA gradient, equity curve, and drawdown on the right side
+            st.subheader(f'Min-Max Scaled EMA Gradient for {symbol}')
+            st.line_chart(ema_gradient_scaled, use_container_width=True)
+            
+        with tab3:
+            st.subheader('Equity Curve')
+            st.line_chart(equity_curve, use_container_width=True)
+            
+        with tab4:    
+            st.subheader('Drawdown')
+            st.line_chart(drawdown, use_container_width=True)
 
     except Exception as e:
         st.error(f"Error processing {symbol} on {exchange}: {e}")

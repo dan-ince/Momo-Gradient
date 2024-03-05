@@ -91,9 +91,7 @@ def main():
         # Calculate equity curve
         equity_curve = calculate_equity(ticker_data, positions)
 
-        # Calculate drawdown
-        drawdown = calculate_drawdown(equity_curve)
-
+        # Calculate sharpe ratio from equity
         sharpe_ratio = calculate_sharpe_ratio(equity_curve, daily_risk_free_rate)
 
         # Organize charts via tabs to improve readability
@@ -120,6 +118,9 @@ def main():
         with tab4:   
             #Drawdown
             st.subheader('Drawdown')
+            strategy_drawdown = calculate_drawdown(equity_curve)
+            asset_drawdown = calculate_drawdown(normal_returns)
+            drawdown = pd.DataFrame({'Strategy': strategy_drawdown, 'Asset': asset_drawdown})
             st.line_chart(drawdown, use_container_width=True)
 
     except Exception as e:

@@ -1,8 +1,10 @@
+# Imports
 import streamlit as st
 import ccxt
 import pandas as pd
 import numpy as np
 
+# Retrieve data from CCXT
 def get_ccxt_data(exchange, symbol, timeframe, limit):
     exchange = getattr(ccxt, exchange)()
     data = exchange.fetch_ohlcv(symbol, timeframe, limit=limit)
@@ -19,8 +21,9 @@ def calculate_ema_gradient(data, ema_window):
     ema_gradient = np.gradient(ema.astype(float).values, data.index.astype(np.int64))
     return ema_gradient
 
+#Min-max scale the feature so it's usable for sizing
 def min_max_scale(series, window):
-    # Use a fixed lookback window for min-max scaling
+    # Use a fixed lookback window
     min_value = series.rolling(window=window, min_periods=1).min()
     max_value = series.rolling(window=window, min_periods=1).max()
     scaled_series = 2 * (series - min_value) / (max_value - min_value) - 1  # Scale to [-1, 1]
@@ -29,12 +32,9 @@ def min_max_scale(series, window):
 def simulate_strategy(data, ema_gradient_scaled, leverage):
     # Use the min-max scaled EMA gradient as the position size
     positions = ema_gradient_scaled * leverage
-    pos_change = np.diff(positions)
-    pos_change_sum = np.cumsum(pos_change)
     return pd.Series(positions, index=data.index)
 
 def calculate_equity(data, positions):
-    # Assuming we start with 100% of equity and trade with positions
     returns = data['close'].pct_change() * positions.shift(1)
     equity_curve = (1 + returns.fillna(0)).cumprod() * 100  # Starting with 100% equity
     return equity_curve
@@ -43,15 +43,16 @@ def calculate_drawdown(equity_curve):
     # Calculate drawdown from equity curve
     running_max = np.maximum.accumulate(equity_curve)
     drawdown = (equity_curve - running_max) / running_max
-    return drawdown * 100  # Convert to percentage
+    return drawdown * 100  
 
 def main():
+    #Set title, ticker text input and tabs
     st.title('Gradient Momentum Dashboard')
     ticker = st.text_input('Ticker', 'BTC')
     tab1, tab2, tab3, tab4 = st.tabs(["Price", "Feature", "Performance", "Drawdown"])
 
-    # Fetch daily data for the last 365 days from a cryptocurrency exchange using ccxt
-    exchange = 'okx'  # Use any exchange available in ccxt
+    # Fetch data from Okex due to Binance location restrictions
+    exchange = 'okx'  
     symbol = f'{ticker}/USDT'
     timeframe = '1d'
     limit = 1000  # Number of data points to fetch
@@ -60,10 +61,10 @@ def main():
 
     try:
         ticker_data = get_ccxt_data(exchange, symbol, timeframe, limit)
-
         ema_length = st.slider('EMA Length', 1, 200, 50)
         ema_gradient = calculate_ema_gradient(ticker_data, ema_length)
 
+        # Divider to improve readability
         st.divider()
 
         # Min-max scale the entire EMA gradient time series with a fixed lookback window
@@ -72,7 +73,7 @@ def main():
         # Simulate the trading strategy based on the min-maxed EMA gradient
         positions = simulate_strategy(ticker_data, ema_gradient_scaled, leverage)
 
-        # Print the most recent close price, its corresponding min-max scale score, and the date
+        # Print the most recent position size for following-along
         pos = positions.iloc[-1]
         st.write(f"Position: {pos:.3}")
 
@@ -82,24 +83,26 @@ def main():
         # Calculate drawdown
         drawdown = calculate_drawdown(equity_curve)
 
-        # Organize charts side by side with wider columns and padding
+        # Organize charts via tabs to improve readability
         with tab1:
-            # Plot the price chart and EMA on the left side
+            # Price
             st.subheader(f'{symbol} Price Chart')
             ema = calculate_ema(ticker_data, ema_length)
             chart_data = pd.DataFrame({'Price': ticker_data['close'], 'EMA': ema})
             st.line_chart(chart_data, use_container_width=True)
 
         with tab2:
-            # Plot the Min-Max scaled EMA gradient, equity curve, and drawdown on the right side
-            st.subheader(f'Min-Max Scaled EMA Gradient for {symbol}')
+            # Feature strength
+            st.subheader(f'Feature Strength')
             st.line_chart(ema_gradient_scaled, use_container_width=True)
             
         with tab3:
+            # Equity
             st.subheader('Equity Curve')
             st.line_chart(equity_curve, use_container_width=True)
             
-        with tab4:    
+        with tab4:   
+            #Drawdown
             st.subheader('Drawdown')
             st.line_chart(drawdown, use_container_width=True)
 

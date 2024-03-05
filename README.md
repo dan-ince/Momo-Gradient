@@ -1,4 +1,4 @@
-A streamlit dashboard to experiment with an EMA gradient based continuous sizing strategy.
+A streamlit dashboard to experiment with an EMA gradient based continuous sizing strategy for cryptocurrent trading.
 Includes an EMA length slider, peformance metrics and display of the price chart.
 
 This trading strategy mutes drawdowns while still upkeeping above-average market returns. 

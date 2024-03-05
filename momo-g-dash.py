@@ -65,7 +65,7 @@ def main():
     exchange = 'okx'  
     symbol = f'{ticker}/USDT'
     timeframe = '1d'
-    limit = 1000  # Number of data points to fetch
+    limit = 800  # Number of days to fetch
     leverage = 1  # Change leverage here
     min_max_lookback = 252  # Fixed lookback window for min-max scaling
     daily_risk_free_rate = 0.0001  # Example daily risk-free rate

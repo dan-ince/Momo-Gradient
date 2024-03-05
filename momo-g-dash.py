@@ -57,7 +57,7 @@ def calculate_sharpe_ratio(equity_curve, daily_risk_free_rate):
 
 def main():
     #Set title, ticker text input and tabs
-    st.title('Feature-Based Momentum Dashboard')
+    st.title('Feature Momentum Dashboard')
     ticker = st.text_input('Ticker', 'BTC')
     tab1, tab2, tab3, tab4 = st.tabs(["Price", "Feature", "Performance", "Drawdown"])
 
